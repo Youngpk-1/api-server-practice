@@ -25,7 +25,9 @@ app.get("/aboutMe", (req, res) => {
 app.get("/aboutMe/:id", (req, res) => {
   res.json(aboutMeStorage);
 
-  const aboutMe = aboutMeStorage.find((entry) => entry.id === req.params.id);
+  const aboutMe = aboutMeStorage.find(
+    (entry) => entry.id.toString === req.params.id
+  );
 
   if (!aboutMe) return res.status(404).json({ error: "aboutMe not found" });
   res.status(200).json(aboutMe);
@@ -66,10 +68,6 @@ app.delete("/aboutMe/:id", (req, res) => {
   // Returns successful response
   res.status(200).json({ message: "Item deleted successfully" });
 });
-
-console.log("POST /aboutMe", req.body);
-
-export default aboutMeStorage;
 
 app.get("/", (req, res) => {
   res.send("<h1>Today is a Great Day!</h1>");
