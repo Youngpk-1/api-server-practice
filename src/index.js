@@ -1,5 +1,6 @@
 // src/index.js
 import express from "express";
+import { randomUUID } from "node:crypto";
 
 const app = express();
 const port = 3000;
@@ -8,7 +9,7 @@ app.use(express.json());
 
 app.post("/aboutMe", (req, res) => {
   // req.body contains the parsed JSON from the request
-  const newaboutMe = req.body;
+  const newaboutMe = { ...req.body, id: randomUUID() };
   console.log(req.body);
 
   // Add to your storage array
