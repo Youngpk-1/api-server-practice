@@ -10,25 +10,11 @@ app.use(express.json());
 // storage array
 
 const aboutMeStorage = [
-  { id: 1, title: "Hobbies", type: ["singing", "playing piano"] },
-  { id: 2, title: "Sports", type: ["basketball", "volleyball"] },
-  { id: 3, title: "food", type: ["chicken", "mac and cheese"] },
-  { id: 4, title: "color", type: ["red", "black", "white"] },
+  { id: randomUUID(), title: "Hobbies", type: ["singing", "playing piano"] },
+  { id: randomUUID(), title: "Sports", type: ["basketball", "volleyball"] },
+  { id: randomUUID(), title: "food", type: ["chicken", "mac and cheese"] },
+  { id: randomUUID(), title: "color", type: ["red", "black", "white"] },
 ];
-
-app.post("/aboutMe", (req, res) => {
-  // req.body contains the parsed JSON from the request
-  if (!req.body?.title) {
-    return res.status(400).json({ error: "Title is required" });
-  } else {
-    console.log(aboutMeStorage);
-  }
-
-  const newaboutMe = { ...req.body, id: randomUUID() };
-  aboutMeStorage.push(newaboutMe);
-  res.status(201).json(newaboutMe);
-  console.log(req.body);
-});
 
 app.get("/aboutMe", (req, res) => {
   res.json({
@@ -41,16 +27,32 @@ app.get("/aboutMe/:id", (req, res) => {
 
   const aboutMe = aboutMeStorage.find((entry) => entry.id === req.params.id);
 
-  if (!aboutMe) return res.status(404).json({ error: "not found" });
+  if (!aboutMe) return res.status(404).json({ error: "aboutMe not found" });
   res.status(200).json(aboutMe);
 });
 
+app.post("/aboutMe", (req, res) => {
+  if (!req.body?.title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  if (!req.body?.type) {
+    return res.status(400).json({ error: "Type is required" });
+  } else {
+    console.log(aboutMeStorage);
+
+    const newaboutMe = { ...req.body, id: randomUUID() };
+    aboutMeStorage.push(newaboutMe);
+    res.status(201).json(newaboutMe);
+    console.log(req.body);
+  }
+});
 console.log("Seeded items", aboutMeStorage);
 
 app.delete("/aboutMe/:id", (req, res) => {
   console.log("Deleting " + req.params.id);
 
-  // Find the item first to check if it exists
+  // check if it exists
   const aboutMe = aboutMeStorage.find((entry) => entry.id === req.params.id);
 
   // If not found, return 404
@@ -58,12 +60,14 @@ app.delete("/aboutMe/:id", (req, res) => {
     return res.status(404).json({ error: "Item not found" });
   }
 
-  // TODO: Delete the item from your storage.
-  aboutMeStorage = aboutMeStorage.filter((entry) => entry.id !== id);
+  // Deletes the item from your storage.
+  aboutMeStorage = aboutMeStorage.filter((entry) => entry.id !== req.params.id);
 
-  // Return success response
+  // Returns successful response
   res.status(200).json({ message: "Item deleted successfully" });
 });
+
+console.log("POST /aboutMe", req.body);
 
 export default aboutMeStorage;
 
