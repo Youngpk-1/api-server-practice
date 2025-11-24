@@ -7,22 +7,27 @@ const port = 3000;
 
 app.use(express.json());
 
+// storage array
+
+const aboutMeStorage = [
+  { id: 1, title: "Hobbies", type: ["singing", "playing piano"] },
+  { id: 2, title: "Sports", type: ["basketball", "volleyball"] },
+  { id: 3, title: "food", type: ["chicken", "mac and cheese"] },
+  { id: 4, title: "color", type: ["red", "black", "white"] },
+];
+
 app.post("/aboutMe", (req, res) => {
   // req.body contains the parsed JSON from the request
-  const newaboutMe = { ...req.body, id: randomUUID() };
-  console.log(req.body);
-
-  // Add to your storage array
-
-  // Return the created item with 201 status
-
   if (!req.body?.title) {
     return res.status(400).json({ error: "Title is required" });
   } else {
-    res.status(201).json(newaboutMe);
-    aboutMeStorage.push(newaboutMe);
     console.log(aboutMeStorage);
   }
+
+  const newaboutMe = { ...req.body, id: randomUUID() };
+  aboutMeStorage.push(newaboutMe);
+  res.status(201).json(newaboutMe);
+  console.log(req.body);
 });
 
 app.get("/aboutMe", (req, res) => {
@@ -33,16 +38,33 @@ app.get("/aboutMe", (req, res) => {
 
 app.get("/aboutMe/:id", (req, res) => {
   res.json(aboutMeStorage);
+
+  const aboutMe = aboutMeStorage.find((entry) => entry.id === req.params.id);
+
+  if (!aboutMe) return res.status(404).json({ error: "not found" });
+  res.status(200).json(aboutMe);
 });
 
-const aboutMeStorage = [
-  { id: 1, title: "Hobbies", type: ["singing", "playing piano"] },
-  { id: 2, title: "Sports", type: ["basketball", "volleyball"] },
-  { id: 3, title: "food", type: ["chicken", "mac and cheese"] },
-  { id: 4, title: "color", type: ["red", "black", "white"] },
-];
-
 console.log("Seeded items", aboutMeStorage);
+
+app.delete("/aboutMe/:id", (req, res) => {
+  console.log("Deleting " + req.params.id);
+
+  // Find the item first to check if it exists
+  const aboutMe = aboutMeStorage.find((entry) => entry.id === req.params.id);
+
+  // If not found, return 404
+  if (!aboutMe) {
+    return res.status(404).json({ error: "Item not found" });
+  }
+
+  // TODO: Delete the item from your storage.
+  aboutMeStorage = aboutMeStorage.filter((entry) => entry.id !== id);
+
+  // Return success response
+  res.status(200).json({ message: "Item deleted successfully" });
+});
+
 export default aboutMeStorage;
 
 app.get("/", (req, res) => {
