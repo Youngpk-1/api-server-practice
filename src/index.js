@@ -1,6 +1,7 @@
 // src/index.js
 import express from "express";
 import { randomUUID } from "node:crypto";
+import supabase from "./supabase.js";
 
 const app = express();
 const port = 3000;
@@ -16,39 +17,72 @@ const aboutMeStorage = [
   { id: randomUUID(), title: "color", type: ["red", "black", "white"] },
 ];
 
-app.get("/aboutMe", (req, res) => {
+app.get("/aboutMe", async (req, res) => {
+  const result = await supabase.from("about-me").select("*");
+  const data = result.data;
+  const error = result.error;
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
   res.json({
-    AboutMe: aboutMeStorage,
+    AboutMe: data,
   });
 });
 
-app.get("/aboutMe/:id", (req, res) => {
-  res.json(aboutMeStorage);
+app.get("/aboutMe/:id", async (req, res) => {
+  const id = req.params.id;
 
-  const aboutMe = aboutMeStorage.find(
-    (entry) => entry.id.toString === req.params.id
-  );
+  const { data } = await supabase
+    .from("about-me")
+    .select("*")
+    .eq("id", id)
+    .single(); // Efficiently fetches just one
+
+  res.json(data);
+  // const aboutMe = aboutMeStorage.find(
+  //   (entry) => entry.id.toString === req.params.id
+  // );
 
   if (!aboutMe) return res.status(404).json({ error: "aboutMe not found" });
   res.status(200).json(aboutMe);
 });
 
-app.post("/aboutMe", (req, res) => {
-  if (!req.body?.title) {
-    return res.status(400).json({ error: "Title is required" });
+app.post("/aboutMe", async (req, res) => {
+  // Validate BEFORE talking to the database
+  if (!req.body.title || !req.body.type) {
+    return res.status(400).json({ error: "Title and Type are required" });
+  }
+  const { data, error } = await supabase
+    .from("about-me")
+    .insert(req.body)
+    .select(); // Returns the created record
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
   }
 
-  if (!req.body?.type) {
-    return res.status(400).json({ error: "Type is required" });
-  } else {
-    console.log(aboutMeStorage);
-
-    const newaboutMe = { ...req.body, id: randomUUID() };
-    aboutMeStorage.push(newaboutMe);
-    res.status(201).json(newaboutMe);
-    console.log(req.body);
-  }
+  // Supabase returns an array, we want the single object
+  res.status(201).json(data[0]);
 });
+
+// app.post("/aboutMe", (req, res) => {
+//   if (!req.body?.title) {
+//     return res.status(400).json({ error: "Title is required" });
+//   }
+
+//   if (!req.body?.type) {
+//     return res.status(400).json({ error: "Type is required" });
+//   } else {
+//     console.log(aboutMeStorage);
+
+//     const newaboutMe = { ...req.body, id: randomUUID() };
+//     aboutMeStorage.push(newaboutMe);
+//     res.status(201).json(newaboutMe);
+//     console.log(req.body);
+//   }
+// });
 console.log("Seeded items", aboutMeStorage);
 
 app.delete("/aboutMe/:id", (req, res) => {
@@ -69,49 +103,49 @@ app.delete("/aboutMe/:id", (req, res) => {
   res.status(200).json({ message: "Item deleted successfully" });
 });
 
-app.get("/", (req, res) => {
-  res.send("<h1>Today is a Great Day!</h1>");
-});
+// app.get("/", (req, res) => {
+//   res.send("<h1>Today is a Great Day!</h1>");
+// });
 
-app.get("/game-night", (req, res) => {
-  res.json({
-    Movies: ["Stranger Things", "The Walking Dead", "Bad Boys"],
-    Food: ["Rotel", "Party Wings", "Sliders"],
-    Games: ["Uno", "Charades", "Scrabble"],
-    Drinks: ["RootBeer", "Mango Tea", "Kool-aid"],
-  });
-});
+// app.get("/game-night", (req, res) => {
+//   res.json({
+//     Movies: ["Stranger Things", "The Walking Dead", "Bad Boys"],
+//     Food: ["Rotel", "Party Wings", "Sliders"],
+//     Games: ["Uno", "Charades", "Scrabble"],
+//     Drinks: ["RootBeer", "Mango Tea", "Kool-aid"],
+//   });
+// });
 
-app.get("/happy-birthday", (req, res) => {
-  res.json({
-    name: "Alice",
-    age: 25,
-    greeting: "Happy Birthday!",
-  });
-});
+// app.get("/happy-birthday", (req, res) => {
+//   res.json({
+//     name: "Alice",
+//     age: 25,
+//     greeting: "Happy Birthday!",
+//   });
+// });
 
-app.get("/bacon", (req, res) => {
-  res.json({
-    Type: "Turkey",
-    Quantity: "6 oz",
-    Brand: "Butterball",
-    Nutrition: {
-      Energy: "167 kcal",
-      Fat: "13.89 g",
-      Salt: "1.458 g",
-    },
-  });
-});
+// app.get("/bacon", (req, res) => {
+//   res.json({
+//     Type: "Turkey",
+//     Quantity: "6 oz",
+//     Brand: "Butterball",
+//     Nutrition: {
+//       Energy: "167 kcal",
+//       Fat: "13.89 g",
+//       Salt: "1.458 g",
+//     },
+//   });
+// });
 
-app.get("/fish-facts", (req, res) => {
-  res.json({
-    Name: "US wild-caught Acadian Redfish",
-    Availability: "Year-round",
-    Source: "From Maine to New York",
-    Taste: ["Mild", "Sweet"],
-    Color: "White",
-  });
-});
+// app.get("/fish-facts", (req, res) => {
+//   res.json({
+//     Name: "US wild-caught Acadian Redfish",
+//     Availability: "Year-round",
+//     Source: "From Maine to New York",
+//     Taste: ["Mild", "Sweet"],
+//     Color: "White",
+//   });
+// });
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
