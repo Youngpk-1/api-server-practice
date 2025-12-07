@@ -6,16 +6,8 @@ import supabase from "./supabase.js";
 const app = express();
 const port = 3000;
 
+// Middleware to parse JSON bodies
 app.use(express.json());
-
-// storage array
-
-const aboutMeStorage = [
-  { id: randomUUID(), title: "Hobbies", type: ["singing", "playing piano"] },
-  { id: randomUUID(), title: "Sports", type: ["basketball", "volleyball"] },
-  { id: randomUUID(), title: "food", type: ["chicken", "mac and cheese"] },
-  { id: randomUUID(), title: "color", type: ["red", "black", "white"] },
-];
 
 app.get("/aboutMe", async (req, res) => {
   const result = await supabase.from("about-me").select("*");
@@ -41,9 +33,6 @@ app.get("/aboutMe/:id", async (req, res) => {
     .single(); // Efficiently fetches just one
 
   res.json(data);
-  // const aboutMe = aboutMeStorage.find(
-  //   (entry) => entry.id.toString === req.params.id
-  // );
 
   if (!aboutMe) return res.status(404).json({ error: "aboutMe not found" });
   res.status(200).json(aboutMe);
@@ -67,45 +56,33 @@ app.post("/aboutMe", async (req, res) => {
   res.status(201).json(data[0]);
 });
 
-// app.post("/aboutMe", (req, res) => {
-//   if (!req.body?.title) {
-//     return res.status(400).json({ error: "Title is required" });
-//   }
+app.put("/aboutMe/:id", async (req, res) => {
+  const id = req.params.id;
+  const { title, type } = req.body;
 
-//   if (!req.body?.type) {
-//     return res.status(400).json({ error: "Type is required" });
-//   } else {
-//     console.log(aboutMeStorage);
+  const updateData = {
+    title,
+    type,
+  };
 
-//     const newaboutMe = { ...req.body, id: randomUUID() };
-//     aboutMeStorage.push(newaboutMe);
-//     res.status(201).json(newaboutMe);
-//     console.log(req.body);
-//   }
-// });
-console.log("Seeded items", aboutMeStorage);
+  const { data } = await supabase
+    .from("about-me")
+    .update(updateData)
+    .eq("id", id)
+    .select();
 
-app.delete("/aboutMe/:id", (req, res) => {
-  console.log("Deleting " + req.params.id);
-
-  // check if it exists
-  const aboutMe = aboutMeStorage.find((entry) => entry.id === req.params.id);
-
-  // If not found, return 404
-  if (!aboutMe) {
-    return res.status(404).json({ error: "Item not found" });
-  }
-
-  // Deletes the item from your storage.
-  aboutMeStorage = aboutMeStorage.filter((entry) => entry.id !== req.params.id);
-
-  // Returns successful response
-  res.status(200).json({ message: "Item deleted successfully" });
+  res.status(200).json(data[0]);
 });
 
-// app.get("/", (req, res) => {
-//   res.send("<h1>Today is a Great Day!</h1>");
-// });
+app.delete("/aboutMe/:id", async (req, res) => {
+  const id = req.params.id;
+
+  await supabase.from("about-me").delete().eq("id", id);
+
+  res.status(200).json({ message: "deleted successfully" });
+
+  // console.log("Deleting " + req.params.id);
+});
 
 // app.get("/game-night", (req, res) => {
 //   res.json({
