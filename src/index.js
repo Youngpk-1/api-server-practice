@@ -26,6 +26,10 @@ app.get("/aboutMe", async (req, res) => {
 app.get("/aboutMe/:id", async (req, res) => {
   const id = req.params.id;
 
+  if (!req.body.title || !req.body.type) {
+    return res.status(404).json({ error: "Title and Type are required" });
+  }
+
   const { data } = await supabase
     .from("about-me")
     .select("*")
@@ -65,11 +69,15 @@ app.put("/aboutMe/:id", async (req, res) => {
     type,
   };
 
+  if (!req.body.title || !req.body.type) {
+    return res.status(400).json({ error: "Title and Type are required" });
+  }
+
   const { data } = await supabase
     .from("about-me")
     .update(updateData)
     .eq("id", id)
-    .select();
+    .select("*");
 
   res.status(200).json(data[0]);
 });
@@ -77,52 +85,16 @@ app.put("/aboutMe/:id", async (req, res) => {
 app.delete("/aboutMe/:id", async (req, res) => {
   const id = req.params.id;
 
+  if (!req.body.title || !req.body.type) {
+    return res.status(400).json({ error: "Title and Type are required" });
+  }
+
   await supabase.from("about-me").delete().eq("id", id);
 
   res.status(200).json({ message: "deleted successfully" });
 
   // console.log("Deleting " + req.params.id);
 });
-
-// app.get("/game-night", (req, res) => {
-//   res.json({
-//     Movies: ["Stranger Things", "The Walking Dead", "Bad Boys"],
-//     Food: ["Rotel", "Party Wings", "Sliders"],
-//     Games: ["Uno", "Charades", "Scrabble"],
-//     Drinks: ["RootBeer", "Mango Tea", "Kool-aid"],
-//   });
-// });
-
-// app.get("/happy-birthday", (req, res) => {
-//   res.json({
-//     name: "Alice",
-//     age: 25,
-//     greeting: "Happy Birthday!",
-//   });
-// });
-
-// app.get("/bacon", (req, res) => {
-//   res.json({
-//     Type: "Turkey",
-//     Quantity: "6 oz",
-//     Brand: "Butterball",
-//     Nutrition: {
-//       Energy: "167 kcal",
-//       Fat: "13.89 g",
-//       Salt: "1.458 g",
-//     },
-//   });
-// });
-
-// app.get("/fish-facts", (req, res) => {
-//   res.json({
-//     Name: "US wild-caught Acadian Redfish",
-//     Availability: "Year-round",
-//     Source: "From Maine to New York",
-//     Taste: ["Mild", "Sweet"],
-//     Color: "White",
-//   });
-// });
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
