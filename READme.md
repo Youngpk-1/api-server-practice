@@ -46,8 +46,9 @@ npm run dev
 project/
 ├── src/
 │   ├── index.js
-│   ├── routes/
-│   └── database/
+│   ├── supabase.js
+│
 ├── package.json
+|__ package-lock.json
 └── README.md
 ```
