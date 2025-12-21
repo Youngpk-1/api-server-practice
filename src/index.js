@@ -26,9 +26,9 @@ app.get("/aboutMe", async (req, res) => {
 app.get("/aboutMe/:id", async (req, res) => {
   const id = req.params.id;
 
-  if (!req.body.title || !req.body.type) {
-    return res.status(404).json({ error: "Title and Type are required" });
-  }
+  // if (!req.body.title || !req.body.type) {
+  //   return res.status(404).json({ error: "Title and Type are required" });
+  // }
 
   const { data } = await supabase
     .from("about-me")
